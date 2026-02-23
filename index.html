@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Healthcare Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        }
+        .recording {
+            animation: pulse-red 2s infinite;
+            background-color: #ef4444 !important;
+        }
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans text-slate-900">
+
+    <!-- Header -->
+    <header class="bg-blue-600 text-white shadow-md p-4 sticky top-0 z-10">
+        <div class="max-w-2xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="bg-white p-2 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                    </svg>
+                </div>
+                <h1 class="text-xl font-bold">AI HealthCare Assistant</h1>
+            </div>
+            <div class="text-xs bg-blue-700 px-2 py-1 rounded">V1.0 - Web Mode</div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow max-w-2xl w-full mx-auto p-4 flex flex-col gap-4 overflow-hidden">
+        
+        <!-- Medical Disclaimer -->
+        <div class="bg-amber-50 border-l-4 border-amber-400 p-3 rounded text-sm text-amber-800">
+            <strong>Disclaimer:</strong> This is a demonstration AI. For serious medical concerns, please consult a qualified healthcare professional.
+        </div>
+
+        <!-- Chat History -->
+        <div id="chatHistory" class="chat-container flex-grow overflow-y-auto space-y-4 p-2">
+            <!-- Messages will appear here -->
+            <div class="flex justify-start">
+                <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-none p-3 shadow-sm max-w-[80%]">
+                    <p class="text-sm">Hello! I am your Offline AI Health Assistant. How are you feeling today?</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Card (Hidden by default) -->
+        <div id="resultCard" class="hidden transform transition-all duration-500 scale-95 opacity-0 bg-white border-2 border-blue-100 rounded-2xl p-5 shadow-lg">
+            <h3 class="font-bold text-blue-800 mb-1">Diagnosis Result</h3>
+            <p id="predictionText" class="text-2xl font-black text-slate-800 mb-3 capitalize">---</p>
+            <div class="bg-blue-50 p-3 rounded-lg">
+                <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-1">Suggested Care</h4>
+                <p id="adviceText" class="text-slate-700">---</p>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="bg-white border border-slate-200 p-4 rounded-3xl shadow-xl flex flex-col gap-3">
+            <div id="statusIndicator" class="text-center text-xs text-slate-400 font-medium">Ready to help</div>
+            
+            <div class="flex items-center gap-2">
+                <input type="text" id="manualInput" placeholder="Type symptoms (e.g. fever, cough)..." 
+                    class="flex-grow bg-slate-100 border-none rounded-full px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                
+                <button id="sendButton" class="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+                    </svg>
+                </button>
+            </div>
+
+            <div class="flex justify-center mt-2">
+                <button id="micButton" class="bg-blue-600 text-white flex items-center gap-2 px-8 py-3 rounded-full hover:bg-blue-700 transition-all font-bold shadow-md">
+                    <svg id="micIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                    </svg>
+                    <span>Listen for Symptoms</span>
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- DATASET & RULES (Mimicking your Python Decision Tree) ---
+        const medicineData = {
+            "Flu": "Paracetamol, rest, drink warm fluids",
+            "Cold": "Antihistamine, steam inhalation",
+            "Migraine": "Ibuprofen, rest in dark room",
+            "Food Poisoning": "ORS, hydration, light food"
+        };
+
+        // This function simulates your DecisionTreeClassifier's behavior
+        // based on the training data you provided in the Python script.
+        function predictDisease(text) {
+            const input = text.toLowerCase();
+            const symptoms = {
+                fever: input.includes("fever"),
+                cough: input.includes("cough"),
+                headache: input.includes("headache"),
+                fatigue: input.includes("fatigue") || input.includes("tired"),
+                body_pain: input.includes("pain") || input.includes("ache")
+            };
+
+            // Heuristic scoring based on your training patterns:
+            // Flu: fever, cough, fatigue, pain (high weight)
+            // Cold: cough, fatigue (no fever/pain usually)
+            // Migraine: headache, fatigue, pain
+            // Food Poisoning: fever, fatigue, pain (no cough)
+
+            if (symptoms.cough && symptoms.fever) return "Flu";
+            if (symptoms.headache && !symptoms.cough) return "Migraine";
+            if (symptoms.fever && !symptoms.cough) return "Food Poisoning";
+            if (symptoms.cough) return "Cold";
+            if (symptoms.fatigue || symptoms.body_pain) return "Flu"; // Fallback to most likely
+            
+            return "Flu"; // Default fallback
+        }
+
+        // --- SPEECH & UI LOGIC ---
+        const micButton = document.getElementById('micButton');
+        const manualInput = document.getElementById('manualInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatHistory = document.getElementById('chatHistory');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const resultCard = document.getElementById('resultCard');
+        const predictionText = document.getElementById('predictionText');
+        const adviceText = document.getElementById('adviceText');
+
+        // Text to Speech
+        function speak(text) {
+            const msg = new SpeechSynthesisUtterance();
+            msg.text = text;
+            msg.rate = 1;
+            window.speechSynthesis.speak(msg);
+            addChatMessage(text, 'assistant');
+        }
+
+        // Add message to UI
+        function addChatMessage(text, sender) {
+            const wrapper = document.createElement('div');
+            wrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
+            
+            const bubble = document.createElement('div');
+            bubble.className = `${sender === 'user' 
+                ? 'bg-blue-600 text-white rounded-tr-none' 
+                : 'bg-white border border-slate-200 rounded-tl-none'} rounded-2xl p-3 shadow-sm max-w-[80%] text-sm`;
+            bubble.textContent = text;
+            
+            wrapper.appendChild(bubble);
+            chatHistory.appendChild(wrapper);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+
+        // Process final result
+        function processInput(text) {
+            if (!text.trim()) return;
+            
+            addChatMessage(text, 'user');
+            const disease = predictDisease(text);
+            const advice = medicineData[disease] || "Consult a doctor for further advice.";
+
+            // Show result card
+            resultCard.classList.remove('hidden');
+            setTimeout(() => {
+                resultCard.classList.remove('scale-95', 'opacity-0');
+                resultCard.classList.add('scale-100', 'opacity-100');
+            }, 10);
+
+            predictionText.textContent = disease;
+            adviceText.textContent = advice;
+
+            // Speak response
+            speak(`Based on your symptoms, you may have ${disease}. Suggested care: ${advice}. If symptoms are severe, please visit a hospital.`);
+        }
+
+        // Speech Recognition Setup
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                micButton.classList.add('recording');
+                micButton.querySelector('span').textContent = 'Listening...';
+                statusIndicator.textContent = "Listening to your symptoms...";
+            };
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                processInput(transcript);
+            };
+
+            recognition.onerror = (event) => {
+                console.error(event.error);
+                statusIndicator.textContent = "Error: " + event.error;
+                speak("Sorry, I could not hear you. Please try typing instead.");
+            };
+
+            recognition.onend = () => {
+                micButton.classList.remove('recording');
+                micButton.querySelector('span').textContent = 'Listen for Symptoms';
+                statusIndicator.textContent = "Ready to help";
+            };
+
+            micButton.addEventListener('click', () => {
+                window.speechSynthesis.cancel(); // Stop talking before listening
+                recognition.start();
+            });
+        } else {
+            micButton.style.display = 'none';
+            statusIndicator.textContent = "Voice recognition not supported in this browser.";
+        }
+
+        // Event Listeners for Manual Input
+        sendButton.addEventListener('click', () => {
+            const text = manualInput.value;
+            if (text) {
+                processInput(text);
+                manualInput.value = '';
+            }
+        });
+
+        manualInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+
+        // Initialize
+        window.onload = () => {
+            setTimeout(() => {
+                speak("Offline AI Healthcare Assistant Started. Tell me your symptoms.");
+                speak("This is a demonstration AI.And this not be 100% true. For serious medical concerns, please consult a qualified healthcare professional.");
+            }, 1000);
+        };
+    </script>
+</body>
+</html>
